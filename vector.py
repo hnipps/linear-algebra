@@ -8,6 +8,9 @@ class Vector(object):
                 raise ValueError
             self.coordinates = tuple(coordinates)
             self.dimension = len(coordinates)
+            self.CANNOT_NORMALISE_ZERO_VECTOR_MSG = 'Cannot normalise the zero vector'
+            self.NO_UNIQUE_PARALLEL_COMPONENT_MSG = 'No unique parallel component'
+            self.NO_UNIQUE_ORTHOGONAL_COMPONENT_MSG = 'No unique orthogonal component'
 
         except ValueError:
             raise ValueError('The coordinates must be nonempty')
@@ -81,7 +84,7 @@ class Vector(object):
             unit_vector = self.apply_scalar(inverse_magnitude)
             return unit_vector
         except ZeroDivisionError:
-            raise Exception('Cannot normalise the zero vector')
+            raise Exception()
     
 
     def dot(self, vector_2):
@@ -118,7 +121,7 @@ class Vector(object):
         return rad_angle * (180 / pi)
     
 
-    def isParallelTo(self, vector_2):
+    def is_parallel_to(self, vector_2):
         """
         Determines whether or not the vector is parallel to the given vector
         """
@@ -129,12 +132,12 @@ class Vector(object):
             unit_vector_2 = vector_2.normalised()
             coordinates_1 = unit_vector_1.absoluteCoordinates()
             coordinates_2 = unit_vector_2.absoluteCoordinates()
-            coordinates_1 = self.roundCoordinates(coordinates_1, 12)
-            coordinates_2 = self.roundCoordinates(coordinates_2, 12)
+            coordinates_1 = self.round_coordinates(coordinates_1, 12)
+            coordinates_2 = self.round_coordinates(coordinates_2, 12)
             return coordinates_1 == coordinates_2
     
 
-    def isOrthogonalTo(self, vector_2):
+    def is_othogonal_to(self, vector_2):
         """
         Determines whether or not the vector is orthogonal to the given vector
         """
@@ -152,14 +155,42 @@ class Vector(object):
         return abs_coordinates
     
 
-    def roundCoordinates(self, coordinates, precision):
+    def round_coordinates(self, coordinates, precision):
         """
-        Rounds te coordinates to the given precision
+        Rounds the coordinates to the given precision
         """
         rounded_coordinates = tuple()
         for coordinate in coordinates:
             rounded_coordinates += (round(coordinate, precision),)
         return rounded_coordinates
+    
+
+    def component_parallel_to(self, basis):
+        """
+        Returns the projection of this vector onto the given vector
+        """
+        try:
+            normalised = basis.normalised()
+            return normalised.apply_scalar(self.dot(normalised))
+        except Exception as e:
+            if str(e) == self.CANNOT_NORMALISE_ZERO_VECTOR_MSG:
+                raise Exception(self.NO_UNIQUE_PARALLEL_COMPONENT_MSG)
+            else:
+                raise e
+
+
+    def component_orthogonal_to(self, basis):
+        """
+        Returns the orthogonal component of this vector to the given vector
+        """
+        try:
+            projection = self.component_parallel_to(basis)
+            return self.subtract(projection)
+        except Exception as e:
+            if str(e) == self.NO_UNIQUE_PARALLEL_COMPONENT_MSG:
+                raise Exception(self.NO_UNIQUE_ORTHOGONAL_COMPONENT_MSG)
+            else:
+                raise e
 
 
 def quiz_1():
@@ -214,27 +245,42 @@ def quiz_4():
     vector_1 = Vector([-7.579, -7.88])
     vector_2 = Vector([22.737, 23.64])
     print("V1 - V2")
-    print(vector_1.isParallelTo(vector_2))
-    print(vector_1.isOrthogonalTo(vector_2))
+    print(vector_1.is_parallel_to(vector_2))
+    print(vector_1.is_othogonal_to(vector_2))
 
     vector_3 = Vector([-2.029, 9.97, 4.172])
     vector_4 = Vector([-9.231, -6.639, -7.245])
     print("V3 - V4")
-    print(vector_3.isParallelTo(vector_4))
-    print(vector_3.isOrthogonalTo(vector_4))
+    print(vector_3.is_parallel_to(vector_4))
+    print(vector_3.is_othogonal_to(vector_4))
 
     vector_5 = Vector([-2.328, -7.284, -1.214])
     vector_6 = Vector([-1.821, 1.072, -2.94])
     print("V5 - V6")
-    print(vector_5.isParallelTo(vector_6))
-    print(vector_5.isOrthogonalTo(vector_6))
+    print(vector_5.is_parallel_to(vector_6))
+    print(vector_5.is_othogonal_to(vector_6))
 
     vector_7 = Vector([2.118, 4.827])
     vector_8 = Vector([0, 0])
     print("V7 - V8")
-    print(vector_7.isParallelTo(vector_8))
-    print(vector_7.isOrthogonalTo(vector_8))
+    print(vector_7.is_parallel_to(vector_8))
+    print(vector_7.is_othogonal_to(vector_8))
 
 
-quiz_4()
+def quiz_5():
+    vector_1 = Vector([3.039, 1.879])
+    vector_2 = Vector([0.825, 2.036])
+    print(vector_1.component_parallel_to(vector_2))
+
+    vector_3 = Vector([-9.88, -3.264, -8.159])
+    vector_4 = Vector([-2.155, -9.353, -9.473])
+    print(vector_3.component_orthogonal_to(vector_4))
+
+    vector_5 = Vector([3.009, -6.172, 3.692, -2.51])
+    vector_6 = Vector([6.404, -9.144, 2.759, 8.718])
+    print(vector_5.component_parallel_to(vector_6))
+    print(vector_5.component_orthogonal_to(vector_6))
+
+
+quiz_5()
 

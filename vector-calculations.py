@@ -1,4 +1,4 @@
-from vector import *
+from vector import Vector
 
 
 def sum_vectors(vector_1, vector_2):
